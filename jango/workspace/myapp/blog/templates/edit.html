@@ -1,0 +1,100 @@
+={% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-center mt-5">
+        <div class="d-flex gap-3 flex-column">
+            <h1>Update Jobs</h1>
+
+            <div id="response"></div> <!-- For displaying AJAX response messages -->
+
+            <form id="updateForm" method="post" class="row g-3">
+                {% csrf_token %}
+                <input type = "hidden" name="id" id="id" value="{{form.instance.id}}">
+                <div class="col-md-6">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" class="form-control {% if form.title.errors %} is-invalid {% endif %}" id="title" value="{{ form.instance.title }}" name="title">
+                    {% if form.title.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.title.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select {% if form.category.errors %} is-invalid {% endif %}" id="category" name="category">
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if form.instance.category.id == category.id %} selected {% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.category.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.category.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label for="img_url" class="form-label">Image</label>
+                    <input type="text" class="form-control {% if form.img_url.errors %} is-invalid {% endif %}" id="img_url" value="{{ form.instance.img_url }}" name="img_url">
+                    {% if form.img_url.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.img_url.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-12">
+                    <label for="content" class="form-label">Content</label>
+                    <textarea class="form-control {% if form.content.errors %} is-invalid {% endif %}" id="content" name="content" rows="3">{{ form.instance.content }}</textarea>
+                    {% if form.content.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.content.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-12">
+                    <button type="submit" id="update-button" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    console.log("ssssssssssssssssssssssssssss")
+    $(document).ready(function() {
+        $('#updateForm').on("submit", function(e) {
+            e.preventDefault(); // Prevent the form from submitting the traditional way
+            
+            var id = $("#id").val();
+            console.log(id);
+            mydata = $(this).serialize();
+            console.log(mydata);
+            
+            $.ajax({
+                url: `/edit/${id}`, 
+                type: 'POST', // Method type
+                data: mydata, // Serialize the form data
+                dataType: 'json', // Expected response data type
+                success: function(response) {
+                    console.log("reeeeeeeeeeeeeeeeeeeeee");
+                    if(response.status === "success"){
+                        $('#response').html('<div class="alert alert-success">' + response.message + '</div>'); 
+                        window.location.href="../grid";
+                    }
+                    else{
+                        console.log("error");
+                        alert("Error:" + JSON.stringify(response.errors));
+                    }
+                    {% comment %} {% endcomment %}
+                },
+                error: function(xhr, status, error) {
+                    console.log("Ajax Error:" + status + error);
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}
+
