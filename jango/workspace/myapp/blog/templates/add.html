@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+        <div class="d-flex justify-content-center mt-5">
+            <div class="d-flex gap-3 flex-column">
+                <h3>Add Form</h3>
+    
+                <div id="response"></div> <!-- For displaying AJAX response messages -->
+    
+                {% if success_msg %}
+                    <div class="alert alert-success" role="alert">
+                        {{ success_msg }}
+                    </div>
+                {% endif %}
+    
+                <form id="postForm" method="post" class="row g-3"> <!-- Added ID to the form -->
+                    {% csrf_token %}
+                    <div class="col-md-6">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control {% if form.title.errors %} is-invalid {% endif %}" id="title" value="{{ title }}" name="title">
+                        {% if form.title.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.title.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select {% if form.category.errors %} is-invalid {% endif %}" id="category" name="category">
+                            <option value="" selected>select category</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.category.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.category.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="img_url" class="form-label">Image</label>
+                        <input type="text" class="form-control {% if form.img_url.errors %} is-invalid {% endif %}" id="img_url" value="{{ image }}" name="img_url">
+                        {% if form.img_url.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.img_url.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-12">
+                        <label for="content" class="form-label">Content</label>
+                        <textarea class="form-control {% if form.content.errors %} is-invalid {% endif %}" id="content" name="content" rows="4"></textarea>
+                        {% if form.content.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.content.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Ensure jQuery is loaded -->
+<script>
+        $(function() {
+            $('#postForm').on('submit', function(e) {
+                e.preventDefault(); // Prevent the form from submitting the traditional way
+    
+                $.ajax({
+                    url: "{% url 'blog:add' %}", // The URL for the request
+                    type: 'POST', // Method type
+                    data: $(this).serialize(), // Serialize the form data
+                    dataType: 'json', // Expected response data type
+                    success: function(response) {
+                        if(response.status=='success'){
+                            $('#response').html('<div class="alert alert-success">' + response.message + '</div>');
+                            $('#postForm')[0].reset(); // Reset the form on success
+                            window.location.href="../";
+                        }
+                        else{
+                            let errors = response.form;
+                            $('.invalid-feedback').remove();
+                            $('.is-invalid').removeClass('is-invalid');
+
+                            for (let field in errors) {
+                                let errorMessages = errors[field].map(error => `<div class="invalid-feedback">${error.message}</div>`).join('');
+                                $(`[name=${field}]`).addClass('is-invalid').after(errorMessages);
+                            
+                            }
+                        }
+                        
+                    },
+                    error: function(xhr) {
+                        let errors = xhr.responseJSON.errors;
+                        let errorMessage = '';
+                        for (let field in errors) {
+                            errorMessage += '<div class="alert alert-danger">' + field + ': ' + errors[field][0] + '</div>';
+                        }
+                        $('#response').html(errorMessage);
+                    }
+                });
+            });
+        });
+</script>
+
+{% endblock %}
+    
+
+
+
+
+
+
+
+
+
+
+    
+
+
+    
