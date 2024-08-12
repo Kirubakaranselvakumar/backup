@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid ">
+    <div class="d-flex justify-content-center mt-5">
+        <div class="d-flex gap-3 flex-column">
+            <h3>Contact Form</h3>
+                {% for field in form %}
+                        {% if field.errors %}
+                                <div class="col-12">
+                                        <span class="fw-bold">{{field.label_tag}}</span>
+                                        {% for  error in field.errors %}
+                                        <span class="text-danger">{{error}}</span>
+                                        {% endfor %}      
+                                </div>
+                        {% endif %}
+                
+                {% endfor %}
+
+                {% if success_msg %}
+                        <div class="alert alert-success" role="alert">
+                                {{success_msg}}
+                        </div>
+                {% endif %}                      
+                        
+
+                <form id="contactForm" method="post" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-6">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" value="{{name}}" name="name" >
+                        </div>
+                        <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" value="{{email}}" name="email" >
+                        </div>
+                        <div class="col-12">
+                                <label for="message" class="form-label">Message</label>
+                                <textarea class="form-control" id="message" value="{{message}}" name="message" rows="4" ></textarea>
+                        </div>
+                        <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                </form>
+         </div>
+    </div>   
+</div>
+
+<!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> 
+<script>
+        $(function() {
+            $('#contactForm').on('submit', function(e) {
+                e.preventDefault(); // Prevent the form from submitting the traditional way
+    
+                $.ajax({
+                    url: "{% url 'blog:contact' %}", // The URL for the request
+                    type: 'POST', // Method type
+                    data: $(this).serialize(), // Serialize the form data
+                    dataType: 'json', // Expected response data type
+                    success: function(response) {
+                        if(response.status=='success'){
+                            $('#response').html('<div class="alert alert-success">' + response.message + '</div>');
+                            $('#contactForm')[0].reset(); // Reset the form on success
+                            window.location.href="../grid";
+                        }
+                        else{
+                            let errors = response.form;
+                            $('.invalid-feedback').remove();
+                            $('.is-invalid').removeClass('is-invalid');
+
+                            for (let field in errors) {
+                                let errorMessages = errors[field].map(error => `<div class="invalid-feedback">${error.message}</div>`).join('');
+                                $(`[name=${field}]`).addClass('is-invalid').after(errorMessages);
+                            
+                            }
+                        }
+                        
+                    },
+                    error: function(xhr) {
+                        let errors = xhr.responseJSON.errors;
+                        let errorMessage = '';
+                        for (let field in errors) {
+                            errorMessage += '<div class="alert alert-danger">' + field + ': ' + errors[field][0] + '</div>';
+                        }
+                        $('#response').html(errorMessage);
+                    }
+                });
+            });
+        });
+</script> -->
+{% endblock %}
+    

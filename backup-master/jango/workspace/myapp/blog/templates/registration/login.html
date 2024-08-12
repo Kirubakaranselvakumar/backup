@@ -1,0 +1,80 @@
+<head>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="create_message">
+</div>
+
+
+<div class="container h-100 d-flex justify-content-center align-items-center ">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-md-6 col-lg-4">
+            
+            <form id="login-form" class="shadow p-4">
+                {% csrf_token %}
+                <div class="form-group mb-3">
+                    <p class="text-center fs-3 font-monospace">LOGIN</P>
+                    <input type="text" class="form-control  p-3 mb-1 bg-body rounded" id="username" name="username" placeholder="Username">
+                </div>
+                <div class="form-group mb-3">
+                    <input type="password" class="form-control  p-3 mb-1 bg-body rounded" id="password" name="password" placeholder="Password">
+                </div>
+                <button type="submit" class="btn btn-success d-grid gap-2 col-6 mx-auto">Login</button>
+                <div class="text-center">
+                    <p name="header" ></p>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+</body>
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Ensure jQuery is loaded -->
+<script>
+    $(document).ready(function() {
+            console.log("scriptttt");
+            $(document).on('submit','#login-form' ,function(e) {
+                e.preventDefault(); // Prevent the form from submitting the traditional way
+                console.log("before");
+                $.ajax({
+                    type: 'POST', // Method type
+                    url: ``, // The URL for the request
+                    data: $(this).serialize(), // Serialize the form data
+                    dataType: 'json', // Expected response data type
+                    success: function(response) {
+                        if(response.status=='success'){
+                            console.log("succccccceeeeeeeesssssssssssssssssssssssss");
+                            window.location.href = "{% url 'blog:grid' %}"; // Redirect to the
+                            
+                        }
+                        else{
+                            console.log("errrrrroooooooooooorrrrrrrrrrrrrrrrrrrr");
+                            
+                            $('.invalid-feedback').remove();
+                            $('.is-invalid').removeClass('is-invalid');
+
+                            let errors = response.errors;
+                            for (let field in errors) {
+                                let errorMessages = `<div class="invalid-feedback">${errors[field]}</div>`;
+                                $(`[name=${field}]`).addClass('is-invalid').after(errorMessages);
+                            }
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $('#create_message').html('<div class="alert alert-danger"> Error Occured </div>');
+                        $('#create_message').fadeIn();
+                    }
+                    
+
+                
+                });
+
+            
+            });
+    });
+    
+</script>

@@ -1,0 +1,242 @@
+
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card m-5" style="display: none; width: fit-content;">
+  <div class=" card-body shadow">
+    <div class="filter-container">
+   <div id="filterBuilder"></div>
+    <div id="apply"></div>
+    <div class="dx-clearfix"></div>
+</div>
+</div>
+
+</div>
+
+<div class="m-5">
+  <button type="button" class="filter btn btn-outline-info">Filters</button>
+</div>
+
+<div id="dataGridContainer">
+
+</div>
+
+<div class="modal" id="popup" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirm Delete</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Are You Sure Want to Delete.</p>
+        </div>
+        <div class="modal-footer">
+          {% csrf_token %}
+          <input type="button" id="delete" class="btn btn-danger" value="Delete">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+
+
+  <script>
+    $(document).ready(function() {
+        let id;
+        console.log("AJAX for grid");
+        $('.filter').on('click',function(){
+          console.log('filter');
+          
+          $('.card').toggle();
+        })
+        const initialfilter = [                    
+                      //  ['content', 'contains', 'technology'], 
+                      'or',
+                      //  [title', 'contains', 'Ai'],
+                        // 'and',
+                        // ['category__name', 'contains', 'food'],
+                      // ], 
+                      ];
+                    
+                    const columnChooserModes = [{
+                      key: 'dragAndDrop',
+                      name: 'Drag and drop',
+                    }, {
+                      key: 'select',
+                      name: 'Select',
+                    }];
+
+                  
+        $.ajax({
+            url:"get_grid",
+            method:"GET",
+            success:function(data){
+                $("#dataGridContainer").dxDataGrid({
+                    dataSource:data,
+                    filterRow: {
+                      visible: true,
+                    },
+                    
+                    columns:[
+                    {
+                        dataField:'id',
+                        caption:'ID',
+                        headerFilter: {
+                          visible: true,
+                        }
+                    },
+                    {
+                        dataField:'title',
+                        caption:'Title',
+                        headerFilter: {
+                          visible: true,
+                        }
+                        
+                    },
+                    {
+                        dataField:'content',
+                        caption:'Content',
+                        headerFilter: {
+                          visible: true,
+                        },
+                        cellTemplate(container,options) {
+                            $("<div>")
+                            .text(options.value)
+                            .css({
+                                "white-space":"normal",
+                                "overflow":"hidden",
+                                "text-overflow":"ellipsis",
+                                "padding":"10px",
+                                "border":"1px solid #dee2e6",
+                                "width":"300px",
+                                "box-sizing":"border-box"
+                            })
+                            .attr('title',options.value)
+                            .appendTo(container);
+                            
+                        },
+                        
+                    },
+                    {
+                        dataField:'author',
+                        caption:'Author',
+                        headerFilter: {
+                          visible: true,
+                        }
+                    },
+                    {
+                        dataField:'status',
+                        caption:'Status',
+                        headerFilter: {
+                          visible: true,
+                        }
+                    },
+                    {
+                        dataField:'category__name',
+                        caption:'Category name',
+                        headerFilter: {
+                          visible: true,
+                        }
+                        
+                    },
+                    {
+                        dataField:'subcategory__name',
+                        caption:'Sub category name',
+                        headerFilter: {
+                          visible: true,
+                        }
+                        
+                    },
+                    
+                    {
+                        caption:'Actions',
+                        cellTemplate(container,options){
+                            $("<i/>")
+                                .addClass('bi bi-pencil-fill text-primary edit btn-sm edit_btn me-2 p-3')
+                                .attr('data_id',options.data.id)
+                                .on('click',function(){
+                                    id = options.data.id;
+                                    window.location.href=`edit/${id}`;
+                                })
+                                .appendTo(container);
+
+                            $("<i/>")
+                                .addClass('bi bi-trash text-danger btn-sm delete delete_btn p-3')
+                                .attr('data_id',options.data.id)
+                                .on('click',function(){
+                                    id = options.data.id;
+                                    console.log("id",id);
+                                    $("#popup").modal('show');
+                                })
+                                .appendTo(container);
+                        },
+                    }
+                    ],   
+                    columnChooser: {
+                      mode: 'select',
+                      enabled: true,
+                      
+                    },
+                    
+                    paging:{
+                        pageSize: 10
+                    },
+                    pager:{
+                        showPageSizeSelector: true,
+                        allowedPageSizes:[5,10,20],
+                        showInfo: true
+                    }
+                });
+
+                $('#filterBuilder').dxFilterBuilder({
+                  fields: [
+                    { dataField: 'title', dataType: 'string' },
+                    { dataField: 'category__name', dataType: 'string' },
+                    { dataField: 'content', dataType: 'string' },
+                    { dataField: 'id', dataType: 'integer' }
+                  ],
+                  value: initialfilter,
+                });
+
+                  $('#apply').dxButton({
+                    text: 'Apply Filter',
+                    type: 'default',
+                    onClick() {
+                      const filter = $('#filterBuilder').dxFilterBuilder('instance').option('value');
+                      $('#dataGridContainer').dxDataGrid('instance').option('filterValue', filter);
+                    },
+                  });
+
+            },
+            
+            error:function(xhr, status, error) {
+                 console.log("Error Fetching Data:" + error);
+            }
+        });
+        $(document).on("click","#delete",function(){
+            var csrf=$("input[name=csrfmiddlewaretoken]").val();
+            console.log(id);
+            $.ajax({
+              type: "POST",
+              url: `delete/${id}`,
+              data: {
+                csrfmiddlewaretoken:csrf,
+                },
+                success: function(data) {
+                  if (data.status == 'success'){
+                    location.reload();
+                    $("#popup").modal('hide');
+                  }
+                }
+           });
+           });
+    });
+</script>
+{% endblock %}

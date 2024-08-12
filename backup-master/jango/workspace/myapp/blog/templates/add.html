@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+        <div class="row justify-content-center mt-5">
+            
+                <div class="col-lg-10 col-md-12">
+                <h3 class="mb-5 text-center">Add Blog</h3>
+    
+                <div id="response"></div> <!-- For displaying AJAX response messages -->
+    
+                {% if success_msg %}
+                    <div class="alert alert-success" role="alert">
+                        {{ success_msg }}
+                    </div>
+                {% endif %}
+
+               
+    
+                <form id="postForm" method="post" class="row g-3 border p-4 shadow rounded"> <!-- Added ID to the form -->
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <ul class="nav nav-tabs nav-secondary" id="postFormTabs" role="tablist">
+                          <li class="nav-item" role="presentation">
+                            <a class="nav-link text-dark active" id="basic-tab" data-bs-toggle="tab" href="#basic" role="tab"
+                              aria-controls="basic" aria-selected="true">Basic Info</a>
+                          </li>
+                          <li class="nav-item" role="presentation">
+                            <a class="nav-link text-dark" id="media-tab" data-bs-toggle="tab" href="#media" role="tab"
+                              aria-controls="media" aria-selected="false">Media</a>
+                          </li>
+                          <li class="nav-item" role="presentation">
+                            <a class="nav-link text-dark" id="additional-tab" data-bs-toggle="tab" href="#additional" role="tab"
+                              aria-controls="additional" aria-selected="false">Additional Info</a>
+                          </li>
+                        </ul>
+                        <button type="submit" id="add-data" class="btn btn-primary ">Save</button>
+                    </div>
+                    <div class="tab-content" id="postFormTabsContent">
+                        <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                            <div class="row g-3 mt-3">
+                                <div class="col-md-4">
+                                    <label for="title" class="form-label">Title</label>
+                                    <input type="text" class="form-control" id="title" name="title">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="category" class="form-label">Category</label>
+                                    <select class="form-select" id="category"  name="category" >
+                                        
+                                    </select>
+                                    <span></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="subcategory" class="form-label">SubCategory</label>
+                                    <select class="form-select" id="subcategory" name="subcategory">
+                                        
+                                    </select>
+                                    <span ></span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="postFormTabsContent">
+                        <div class="tab-pane " id="media" role="tabpanel" aria-labelledby="media-tab">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="img_url" class="form-label">Image</label>
+                                    <input type="text" class="form-control" id="img_url" name="img_url">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="postFormTabsContent">
+                        <div class="tab-pane" id="additional" role="tabpanel" aria-labelledby="additional-tab">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="author" class="form-label">Author</label>
+                                    <input type="text" class="form-control" id="author" name="author">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="status" class="form-label">status</label>
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="" selected>select status</option>
+                                        <option value="draft">draft</option>
+                                        <option value="published">published</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label for="content" class="form-label">Content</label>
+                                    <textarea class="form-control" id="content" name="content" rows="4"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    
+                    
+                </form>
+                </div>
+            
+        </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Ensure jQuery is loaded -->
+<script>
+        $(function() {
+            $('#postForm').on('submit', function(e) {
+                e.preventDefault(); // Prevent the form from submitting the traditional way
+    
+                $.ajax({
+                    url: "{% url 'blog:add' %}", // The URL for the request
+                    type: 'POST', // Method type
+                    data: $(this).serialize(), // Serialize the form data
+                    dataType: 'json', // Expected response data type
+                    success: function(response) {
+                        if(response.status=='success'){
+                            $('#response').html('<div class="alert alert-success">' + response.message + '</div>');
+                            $('#postForm')[0].reset(); // Reset the form on success
+                            window.location.href="../grid";
+                        }
+                        else{
+                            let errors = response.form;
+                            $('.invalid-feedback').remove();
+                            $('.is-invalid').removeClass('is-invalid');
+
+                            for (let field in errors) {
+                                let errorMessages = errors[field].map(error => `<div class="invalid-feedback">${error.message}</div>`).join('');
+                                let element = $(`[name=${field}]`);
+                                element.addClass('is-invalid');
+                                if (element.hasClass('select2-hidden-accessible')) {
+                                element.next('.select2-container').find('.select2-selection--single').addClass('form-control is-invalid');
+                                element.next('.select2-container').after(errorMessages);
+                                } else {
+                                element.after(errorMessages);
+                                }
+                            }
+                        }
+                        
+                    },
+                    error: function(xhr) {
+                        let errors = xhr.responseJSON.errors;
+                        let errorMessage = '';
+                        for (let field in errors) {
+                            errorMessage += '<div class="alert alert-danger">' + field + ': ' + errors[field][0] + '</div>';
+                        }
+                        $('#response').html(errorMessage);
+                    }
+                });
+            });
+        });
+</script>
+
+{% endblock %}
+ 
+
+    
