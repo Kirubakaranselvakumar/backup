@@ -1,0 +1,10 @@
+core.repositoryformatversion=0
+core.filemode=true
+core.bare=false
+core.logallrefupdates=true
+remote.url.url=https://github.com/Kirubakaranselvakumar/backup.git
+remote.url.fetch=+refs/heads/*:refs/remotes/url/*
+user.name=
+Kirubakaranselvakumar
+
+user.email=kirubaruba444@gmail.com
